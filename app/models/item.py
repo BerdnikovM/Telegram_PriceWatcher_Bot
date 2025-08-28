@@ -17,4 +17,4 @@ class WatchedItem(SQLModel, table=True):
 
     last_checked: Optional[datetime] = None
     is_active: bool = Field(default=True)
-
+    check_interval: int = Field(default=15, description="Частота проверки цены (в минутах)")
