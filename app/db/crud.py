@@ -97,3 +97,20 @@ async def get_all_active_items() -> List[WatchedItem]:
             select(WatchedItem).where(WatchedItem.is_active == True)
         )
         return result.all()
+
+async def update_last_checked(item_id: int) -> bool:
+    async with get_session() as session:
+        result = await session.exec(
+            update(WatchedItem)
+            .where(WatchedItem.id == item_id)
+            .values(
+                last_checked=datetime.utcnow()
+            )
+        )
+        await session.commit()
+        return result.rowcount > 0
+
+
+async def get_user_by_id(user_id: int) -> Optional[User]:
+    async with get_session() as session:
+        return await session.get(User, user_id)

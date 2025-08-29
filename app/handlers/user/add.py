@@ -91,7 +91,7 @@ async def process_threshold(message: Message, state: FSMContext):
 
 @router.message(AddItemState.waiting_for_interval)
 async def process_interval(message: Message, state: FSMContext):
-    interval_map = {"5 мин": 5, "15 мин": 15, "30 мин": 30, "60 мин": 60}
+    interval_map = {"1 мин": 1, "5 мин": 5, "15 мин": 15, "30 мин": 30, "60 мин": 60}
     interval = interval_map.get(message.text)
     if not interval:
         await message.answer("❌ Пожалуйста, выбери вариант с помощью кнопки ниже.")
