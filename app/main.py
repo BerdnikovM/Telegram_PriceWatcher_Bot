@@ -12,6 +12,8 @@ from app.config import settings
 from app.handlers.user import start as user_start
 from app.handlers.user import help as user_help
 from app.handlers.user import add as user_add
+from app.handlers.user import list_remove as user_list_remove
+from app.handlers.admin import admin as admin_handlers
 
 from app.services.scheduler import scheduler, launch_all_price_checks  # <-- наш singleton
 import nest_asyncio
@@ -33,8 +35,9 @@ async def main():
     dp.include_router(user_start.router)
     dp.include_router(user_help.router)
     dp.include_router(user_add.router)
+    dp.include_router(user_list_remove.router)
+    dp.include_router(admin_handlers.router)
 
-    # ❗ стартуем именно singleton-планировщик
     scheduler.start()
     await launch_all_price_checks()
 

@@ -15,6 +15,4 @@ async def cmd_help(message: Message):
         "/help — помощь\n"
         "/add — добавить ссылку на товар\n"
         "/list — список отслеживаемых\n"
-        "/remove — удалить товар\n"
-        "/settings — настройки уведомлений\n"
     )

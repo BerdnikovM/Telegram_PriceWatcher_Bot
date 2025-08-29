@@ -1,7 +1,7 @@
 # app/handlers/user/add.py
 
 from aiogram import Router, F
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
@@ -9,7 +9,8 @@ from app.services.parser import fetch_price
 from app.db import crud
 from app.models.user import User
 from urllib.parse import urlparse
-from app.keyboards.reply import interval_kb
+from app.keyboards.inline import interval_inline_kb
+from app.services.scheduler import schedule_price_check
 
 router = Router()
 
@@ -85,17 +86,13 @@ async def process_threshold(message: Message, state: FSMContext):
     )
     await message.answer(
         "✅ Товар распознан!\nТеперь выбери, как часто проверять цену:",
-        reply_markup=interval_kb
+        reply_markup=interval_inline_kb()
     )
     await state.set_state(AddItemState.waiting_for_interval)
 
-@router.message(AddItemState.waiting_for_interval)
-async def process_interval(message: Message, state: FSMContext):
-    interval_map = {"1 мин": 1, "5 мин": 5, "15 мин": 15, "30 мин": 30, "60 мин": 60}
-    interval = interval_map.get(message.text)
-    if not interval:
-        await message.answer("❌ Пожалуйста, выбери вариант с помощью кнопки ниже.")
-        return
+@router.callback_query(AddItemState.waiting_for_interval, F.data.startswith("interval:"))
+async def process_interval(call: CallbackQuery, state: FSMContext):
+    interval = int(call.data.split(":")[1])
 
     user_data = await state.get_data()
     url = user_data["url"]
@@ -104,11 +101,12 @@ async def process_interval(message: Message, state: FSMContext):
     current_price = user_data["current_price"]
     title = user_data["title"]
 
-    user = await crud.get_user_by_telegram_id(message.from_user.id)
+    user = await crud.get_user_by_telegram_id(call.from_user.id)
     if not user:
-        user = await crud.create_user(message.from_user.id, message.from_user.username)
+        user = await crud.create_user(call.from_user.id, call.from_user.username)
 
-    await crud.add_watched_item(
+    # сохраняем товар
+    item = await crud.add_watched_item(
         user_id=user.id,
         url=url,
         title=title,
@@ -118,7 +116,11 @@ async def process_interval(message: Message, state: FSMContext):
         check_interval=interval
     )
 
-    await message.answer(
+    # 🚀 сразу запускаем задачу в scheduler
+    schedule_price_check(item.id, interval)
+    print(f"[Scheduler] Добавлено новое слежение item_id={item.id}, интервал={interval} мин.")
+
+    await call.message.edit_text(  # редактируем предыдущее сообщение, убираем клавиатуру
         f"✅ Готово! Буду следить за товаром:\n\n<b>{title or url}</b>\n"
         f"Текущая цена: {current_price} ₽\n"
         f"Интервал проверки: {interval} мин."

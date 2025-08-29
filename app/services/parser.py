@@ -30,18 +30,40 @@ async def try_parse_with_httpx(url: str) -> tuple[Decimal | None, str | None, st
         response.raise_for_status()
 
     soup = BeautifulSoup(response.text, "html.parser")
-    text = soup.get_text(" ", strip=True)
     title_tag = soup.find("title")
     title = title_tag.text.strip() if title_tag else None
 
-    # Ищем цену по маске
-    import re
-    price_match = re.search(r"(\d[\d\s\u00A0]{3,})\s?₽", text)
-    if price_match:
-        raw_price = price_match.group(1)
-        price = Decimal(''.join(c for c in raw_price if c.isdigit()))
+    price = None
+
+    # 1️⃣ Сначала ищем конкретные элементы цены
+    price_tag = soup.select_one("span.price, span.price-block__wallet-price, [data-meta-price], meta[itemprop='price']")
+    if price_tag:
+        if price_tag.name == "meta":
+            raw_price = price_tag.get("content")
+        else:
+            raw_price = price_tag.get_text(strip=True)
+
+        if raw_price:
+            digits = "".join(c for c in raw_price if c.isdigit())
+            if digits:
+                price = Decimal(digits)
+
+    # 2️⃣ Если не нашли — fallback на регулярку
+    if price is None:
+        import re
+        text = soup.get_text(" ", strip=True)
+        price_match = re.search(r"(\d[\d\s\u00A0]{1,})\s?₽", text)
+        if price_match:
+            raw_price = price_match.group(1)
+            digits = "".join(c for c in raw_price if c.isdigit())
+            if digits:
+                price = Decimal(digits)
+
+    if price:
         return price, title, "httpx"
+
     raise ValueError("Цена не найдена через httpx")
+
 
 
 # --- Основной метод через Playwright с улучшенной логикой

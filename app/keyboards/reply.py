@@ -1,10 +1,12 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
-interval_kb = ReplyKeyboardMarkup(
+# Главное меню
+main_menu = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="1 мин"), KeyboardButton(text="5 мин"), KeyboardButton(text="15 мин")],
-        [KeyboardButton(text="30 мин"), KeyboardButton(text="60 мин")]
+        [KeyboardButton(text="/add")],
+        [KeyboardButton(text="/list")],
+        [KeyboardButton(text="/help")],
     ],
-    resize_keyboard=True
+    resize_keyboard=True,   # подгоняет клавиатуру под экран
+    one_time_keyboard=False # клавиатура всегда доступна
 )
-

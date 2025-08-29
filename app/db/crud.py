@@ -21,6 +21,12 @@ async def get_user_by_telegram_id(telegram_id: int) -> Optional[User]:
         result = await session.exec(select(User).where(User.telegram_id == telegram_id))
         return result.first()
 
+async def get_all_users() -> list[User]:
+    async with get_session() as session:
+        result = await session.exec(select(User).order_by(User.id))
+        return result.all()
+
+
 # --- WATCHED ITEM ---
 
 async def add_watched_item(
