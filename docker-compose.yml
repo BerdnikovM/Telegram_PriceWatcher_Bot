@@ -1,1 +1,28 @@
- 
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: pricewatcher_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: pricewatcher
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  bot:
+    build: .
+    container_name: pricewatcher_bot
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
+
