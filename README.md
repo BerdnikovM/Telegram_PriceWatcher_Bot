@@ -37,7 +37,7 @@
 
 ```bash
 # 1. Клонируйте проект:
-git clone https://github.com/GeorgePink/Telegram_PriceWatcherBot.git
+git clone https://github.com/BerdnikovM/Telegram_PriceWatcher_Bot.git
 cd Telegram_PriceWatcherBot
 
 # 2. Создайте виртуальное окружение и установите зависимости:
@@ -55,6 +55,23 @@ python -m app.db.init_db
 
 # 5. Запустите бота:
 python -m app.main
+```
+Вариант 2: Запуск через Docker
+
+Самый быстрый способ развернуть бота на сервере или VPS.
+```
+# 1. Склонируй репозиторий
+git clone https://github.com/BerdnikovM/Telegram_PriceWatcher_Bot.git
+cd Telegram_PriceWatcherBot
+
+# 2. Создай .env
+cp .env.example .env
+
+# 3. Собери образ (или возьми с Docker Hub)
+docker build -t mihailberd/pricewatcherbot:latest .
+
+# 4. Запусти через docker-compose
+docker compose up -d
 ```
 
 ---
